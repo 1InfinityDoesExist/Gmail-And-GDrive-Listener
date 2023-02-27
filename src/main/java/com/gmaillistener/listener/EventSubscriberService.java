@@ -37,7 +37,8 @@ public class EventSubscriberService {
 	@Value("${gmail.message.scopes:https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/pubsub}")
 	private String[] scopes;
 
-	@Value("${gamil.message.subscriptionId:Orchestrator-Gmail-Event-Listenr}")
+	//@Value("${gamil.message.subscriptionId:Orchestrator-Gmail-Event-Listenr}")
+	@Value("${gamil.message.subscriptionId:OauthGMessageListener-sub}")
 	private String subscriptionId;
 
 	@Autowired
@@ -59,7 +60,8 @@ public class EventSubscriberService {
 		Subscriber subscriber = null;
 		try {
 			subscriber = Subscriber.newBuilder(subscriptionName, gMessageReceiver)
-					.setCredentialsProvider(getCredentialsProvider(filePath)).build();
+					.setCredentialsProvider(getCredentialsProvider(filePath))
+					.build();
 
 			log.info("------Subscriber : {}", subscriber);
 			subscriber.startAsync().awaitRunning();
