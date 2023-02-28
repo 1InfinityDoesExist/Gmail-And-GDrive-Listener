@@ -4,13 +4,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Date;
-
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
@@ -24,6 +23,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.gax.core.CredentialsProvider;
 import com.google.api.gax.core.FixedCredentialsProvider;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.pubsub.v1.Subscriber;
 import com.google.pubsub.v1.ProjectSubscriptionName;
@@ -37,7 +37,10 @@ public class EventSubscriberService {
 	@Value("${gmail.message.scopes:https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/pubsub}")
 	private String[] scopes;
 
-	//@Value("${gamil.message.subscriptionId:Orchestrator-Gmail-Event-Listenr}")
+	@Value("${gmail.api.scopes:https://www.googleapis.com/auth/drive,https://www.googleapis.com/auth/drive.file,https://www.googleapis.com/auth/drive.readonly,https://www.googleapis.com/auth/forms.body,https://www.googleapis.com/auth/forms.body.readonly,https://www.googleapis.com/auth/forms.responses.readonly,https://mail.google.com/,https://www.googleapis.com/auth/gmail.modify,https://www.googleapis.com/auth/gmail.readonly,https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/pubsub}")
+	private String[] scopesForGmailApis;
+
+	// @Value("${gamil.message.subscriptionId:Orchestrator-Gmail-Event-Listenr}")
 	@Value("${gamil.message.subscriptionId:OauthGMessageListener-sub}")
 	private String subscriptionId;
 
@@ -53,6 +56,11 @@ public class EventSubscriberService {
 
 		GoogleCredential driveService = getGoogleCredential(filePath);
 
+		String tokenValue = GoogleCredentials.fromStream(new FileInputStream(filePath))
+				.createScoped(Arrays.asList(scopesForGmailApis)).refreshAccessToken().getTokenValue();
+
+		log.info("----Token : {}", tokenValue);
+
 		log.info("-----ProjectId : {}", driveService.getServiceAccountProjectId());
 		ProjectSubscriptionName subscriptionName = ProjectSubscriptionName.of(driveService.getServiceAccountProjectId(),
 				subscriptionId);
@@ -60,8 +68,7 @@ public class EventSubscriberService {
 		Subscriber subscriber = null;
 		try {
 			subscriber = Subscriber.newBuilder(subscriptionName, gMessageReceiver)
-					.setCredentialsProvider(getCredentialsProvider(filePath))
-					.build();
+					.setCredentialsProvider(getCredentialsProvider(filePath)).build();
 
 			log.info("------Subscriber : {}", subscriber);
 			subscriber.startAsync().awaitRunning();
@@ -96,7 +103,7 @@ public class EventSubscriberService {
 		HttpTransport httpTransport = new NetHttpTransport();
 		GoogleCredential googleCredential = GoogleCredential
 				.fromStream(new FileInputStream(filePath), httpTransport, new JacksonFactory())
-				.createScoped(Arrays.asList());
+				.createScoped(Arrays.asList(scopesForGmailApis));
 		return googleCredential;
 	}
 
