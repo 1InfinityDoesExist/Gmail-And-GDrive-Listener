@@ -50,6 +50,15 @@ public class EventSubscriberService {
 	@Autowired
 	private GenericRestCalls genericRestCalls;
 
+	/**
+	 * admin : The emailId using which the service account was made.
+	 * 
+	 * Templfile delete missing.
+	 * 
+	 * @param serviceAccFileUrl
+	 * @param admin
+	 * @throws Exception
+	 */
 	public void gMessageListener(String serviceAccFileUrl, String admin) throws Exception {
 
 		String filePath = getServiceAccountDestailsAsStream(serviceAccFileUrl);
@@ -57,7 +66,8 @@ public class EventSubscriberService {
 		GoogleCredential driveService = getGoogleCredential(filePath);
 
 		String tokenValue = GoogleCredentials.fromStream(new FileInputStream(filePath))
-				.createScoped(Arrays.asList(scopesForGmailApis)).refreshAccessToken().getTokenValue();
+				.createScoped(Arrays.asList(scopesForGmailApis)).createDelegated(admin).refreshAccessToken()
+				.getTokenValue();
 
 		log.info("----Token : {}", tokenValue);
 
