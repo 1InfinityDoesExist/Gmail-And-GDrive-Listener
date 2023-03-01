@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Date;
-import org.apache.commons.lang3.StringUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
@@ -53,7 +53,7 @@ public class EventSubscriberService {
 	/**
 	 * admin : The emailId using which the service account was made.
 	 * 
-	 * Templfile delete missing.
+	 * Tempfile delete missing.
 	 * 
 	 * @param serviceAccFileUrl
 	 * @param admin
